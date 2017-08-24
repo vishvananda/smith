@@ -11,10 +11,12 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	gdigest "github.com/opencontainers/go-digest"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // RegistryClient is a type for container image registry clients.
@@ -55,6 +57,11 @@ func parseRepoInfo(remote string, docker bool) (*RepoInfo, error) {
 		// get username and password
 		r.Username = data.User.Username()
 		r.Password, _ = data.User.Password()
+		if r.Password == "" {
+			fmt.Print("Password: ")
+			bytePassword, _ := terminal.ReadPassword(int(syscall.Stdin))
+			r.Password = strings.TrimSpace(string(bytePassword))
+		}
 	}
 	r.Tag = "latest"
 	if len(data.Path) != 0 {
